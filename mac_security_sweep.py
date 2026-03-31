@@ -270,9 +270,14 @@ class MacSecuritySweep:
             if path.is_file():
                 self._inspect_text_job_file(path)
             elif path.is_dir():
-                for child in path.iterdir():
-                    if child.is_file():
-                        self._inspect_text_job_file(child)
+                try:
+                    for child in path.iterdir():
+                        if child.is_file():
+                            self._inspect_text_job_file(child)
+                except PermissionError:
+                    self.telemetry["warnings"].append(f"Permission denied reading cron directory: {path}")
+                except OSError as exc:
+                    self.telemetry["warnings"].append(f"Could not inspect cron directory {path}: {exc}")
 
     def _inspect_text_job_file(self, path: Path) -> None:
         try:
